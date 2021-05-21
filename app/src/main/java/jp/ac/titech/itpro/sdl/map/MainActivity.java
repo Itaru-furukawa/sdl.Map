@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,10 +33,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Manifest.permission.ACCESS_FINE_LOCATION
     };
     private final static int REQ_PERMISSIONS = 1234;
-
+    private LatLng ll;
     private TextView infoView;
     private GoogleMap map;
-
     private FusedLocationProviderClient locationClient;
     private LocationRequest request;
     private LocationCallback callback;
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_main);
-
+        Button nowButton = findViewById(R.id.now_locate_button);
         infoView = findViewById(R.id.info_view);
         SupportMapFragment fragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
         if (fragment != null) {
@@ -56,22 +56,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationClient = LocationServices.getFusedLocationProviderClient(this);
 
         request = LocationRequest.create();
-        request.setInterval(10000L);
         request.setFastestInterval(5000L);
         request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
+        nowButton.setOnClickListener(v->{
+            map.animateCamera(CameraUpdateFactory.newLatLng(ll));
+        });
         callback = new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 Log.d(TAG, "onLocationResult");
                 Location location = locationResult.getLastLocation();
-                LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
+                ll = new LatLng(location.getLatitude(), location.getLongitude());
                 infoView.setText(getString(R.string.latlng_format, ll.latitude, ll.longitude));
+
                 if (map == null) {
                     Log.d(TAG, "onLocationResult: map == null");
                     return;
                 }
-                map.animateCamera(CameraUpdateFactory.newLatLng(ll));
             }
         };
     }
